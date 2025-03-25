@@ -16,7 +16,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import CountVectorizer
 
 # Load and filter top tracks by popularity
-tracks = pd.read_csv('/content/drive/MyDrive/music/tracks_transformed.csv')
+tracks = pd.read_csv('tracks_transformed.csv')
 tracks = tracks.sort_values(by=['popularity'], ascending=False).head(10000)
 
 # Handle NaN values in the 'genres' column
