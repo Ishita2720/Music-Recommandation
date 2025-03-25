@@ -39,7 +39,7 @@ song_name = st.text_input("Song Name")
 
 if st.button("Recommend"):
     if tracks[tracks['name'] == song_name].shape[0] == 0:
-        st.error("Song not found! Here are some random suggestions:")
+        st.error("Here are some song:")
         suggestions = tracks.sample(5)['name'].values
         for song in suggestions:
             st.write(f"- {song}")
