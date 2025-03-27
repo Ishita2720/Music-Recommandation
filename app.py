@@ -21,20 +21,12 @@ def get_similarities(song_name, tracks, genre_matrix, numerical_features):
     song_idx = tracks[tracks['name'].str.lower() == song_name.lower()].index.to_numpy()
     
     if len(song_idx) == 0:
-        print(f"Sorry, the song '{song_name}' was not found.")
-        print("Here are some recommended songs from the dataset:\n")
-        
-        # Recommend fallback songs
-        fallback_recommendations = tracks[['name', 'artists']].drop_duplicates().head(10)
-        for i, row in fallback_recommendations.iterrows():
-            print(f"{row['name']} by {row['artists']}")
-        return None
-    
+        return None  # No match found
+
     song_idx = song_idx[0]  # Extract the first valid index
     
     # Check if index is within range
     if song_idx >= genre_matrix.shape[0]:
-        print(f"Error: song index {song_idx} is out of range for genre_matrix with shape {genre_matrix.shape}.")
         return None
 
     # Get genre vector and numerical feature for the song
@@ -51,26 +43,32 @@ def get_similarities(song_name, tracks, genre_matrix, numerical_features):
     # Copy `tracks` to avoid modifying the original DataFrame
     data = tracks.copy()
     data['similarity_factor'] = combined_similarity
+
+    # Remove the input song from recommendations
+    data = data[data.index != song_idx]
     
     return data
 
+# Streamlit App
 st.title("🎵 Song Recommendation System")
 st.write("Enter a song name to get recommendations:")
 
 song_name = st.text_input("Song Name")
 
-
 if st.button("Recommend"):
-    if tracks[tracks['name'] == song_name].shape[0] == 0:
-        st.error("NO song found similar, Here are some selected song:")
-        suggestions = tracks.sample(5)['name'].values
-        for song in suggestions:
-            st.write(f"- {song}")
+    recommended_data = get_similarities(song_name, tracks, genre_matrix, numerical_features)
+
+    if recommended_data is None:
+        # No similar song found, suggest random songs
+        st.error("No similar song found. Here are some randomly selected songs:")
+        suggestions = tracks.sample(5)[['name', 'artists']]
+        for _, row in suggestions.iterrows():
+            st.write(f"🎶 **{row['name']}** by {row['artists']}")
     else:
-        updated_data = get_similarities(song_name, tracks, genre_matrix, numerical_features)
-        if updated_data is not None:
-            recommendations = updated_data.sort_values(by=['similarity_factor', 'popularity'], ascending=[False, False])
-            recommended_songs = recommendations[['name', 'artists']].iloc[1:6]
-            st.write("Recommended Songs:")
-            for index, row in recommended_songs.iterrows():
-                st.write(f"🎶 **{row['name']}** by {row['artists']}")
+        # Recommend similar songs
+        recommendations = recommended_data.sort_values(by=['similarity_factor', 'popularity'], ascending=[False, False])
+        recommended_songs = recommendations[['name', 'artists']].head(5)
+        
+        st.write("Recommended Songs:")
+        for _, row in recommended_songs.iterrows():
+            st.write(f"🎶 **{row['name']}** by {row['artists']}")
