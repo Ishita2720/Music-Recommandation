@@ -62,12 +62,11 @@ song_name = st.text_input("Song Name")
 
 if st.button("Recommend"):
     if tracks[tracks['name'] == song_name].shape[0] == 0:
-        st.error("Here are some song:")
+        st.error("Here a some recommanded song:")
         suggestions = tracks.sample(5)['name'].values
         for song in suggestions:
             st.write(f"- {song}")
     else:
-        print("No similar song found in dataset")
         updated_data = get_similarities(song_name, tracks, genre_matrix, numerical_features)
         if updated_data is not None:
             recommendations = updated_data.sort_values(by=['similarity_factor', 'popularity'], ascending=[False, False])
